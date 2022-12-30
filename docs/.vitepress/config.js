@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: '励志前端',
+  title: '前端文档库 | 励志前端',
   description: '用于存放前端中文文档，用于整理记录个人心得',
   themeConfig:{
     'logo':'./logo.jpg',
