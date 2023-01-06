@@ -51,46 +51,37 @@ console.log(Server.renderToString(<Greet />))
 
 ## 构建脚本
 
-您的build命令将重复运行，因此您需要将其自动化。一种自然的方法是将构建脚本添加到package.json文件中，如下所示：
+您的build命令将重复运行，因此您可能想要将它自动化。一种自然的方法是将构建脚本添加到`package.json`文件中，如下所示：
 
 
-
+```json
 {
-
-“脚本”：{
-
-“build”：“esbuild app.jsx--bundle--outfile=out.js”
-
+  "scripts": {
+    "build": "esbuild app.jsx --bundle --outfile=out.js"
+  }
 }
+```
 
-}
-
-请注意，这直接使用esbuild命令，而没有相对路径。这是因为脚本部分中的所有内容都是使用路径中已经存在的esbuild命令运行的（只要您安装了包）。
+请注意，这里直接使用了esbuild命令，而没有使用相对路径。这是因为`scripts`部分中的所有内容都是使用路径中已经存在的`esbuild`命令运行的（只要您安装了esbuild包）。
 
 
 
 构建脚本可以这样调用：
+```cmd
+npm run build
+```
+
+但是，如果您需要将更多的选项传递给esbuild，那么使用命令行界面可能会变得非常困难。对于更复杂的使用场景，您可能希望使用`esbuild`的`JavaScript API`在`JavaScript`中编写构建脚本。可能像下面这样：
+
+```js
+require('esbuild').build({
+  entryPoints: ['app.jsx'],
+  bundle: true,
+  outfile: 'out.js',
+}).catch(() => process.exit(1))
+```
+
+`build函数`在子进程中运行esbuild可执行文件，当build执行完成后，返回一个promise。上面的代码不会打印出捕获到的异常，因为默认情况下，异常中的任何错误消息也会打印到控制台（如果您愿意，可以更改日志级别来关闭它）。
 
 
-
-npm运行构建
-
-但是，如果您需要将许多选项传递给esbuild，那么使用命令行界面可能会变得非常困难。对于更复杂的用途，您可能希望使用esbuild的JavaScript API以JavaScript编写构建脚本。这可能看起来像这样：
-
-
-
-require（'esbuild'）.build({
-
-入口点：['app.jsx']，
-
-束：真，
-
-outfile:'out.js'，
-
-}).catch（（）=>process.ext（1））
-
-build函数在子进程中运行esbuild可执行文件，并返回一个promise，该promise在生成完成时解析。上面的代码不会打印出捕获到的异常，因为默认情况下，异常中的任何错误消息也会打印到控制台（尽管如果您愿意，可以更改日志级别以关闭它）。
-
-
-
-虽然也有一个非异步的buildSync API，但异步API对于构建脚本更好，因为插件只能与异步API一起工作。您可以在API文档中阅读有关构建API的配置选项的更多信息。
+虽然也有一个非异步的`buildSync API`，但异步API对于构建脚本更好，因为插件只能与异步API一起工作。您可以在API文档中阅读有关构建API的配置选项的更多信息。
