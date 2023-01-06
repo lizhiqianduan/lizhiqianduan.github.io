@@ -15,12 +15,21 @@
 ## 关于开源
 :point_right:[贡献文档](https://github.com/lizhiqianduan/lizhiqianduan.github.io/pulls)
 
-此项目完全开源，任何人都可以给项目贡献文档，只需要在GitHub提交Pull requests即可
+此项目完全开源，任何人都可以给项目贡献文档，只需要在GitHub提交Pull requests即可。
 
 :point_right:[文档下载](https://github.com/lizhiqianduan/lizhiqianduan.github.io)
 
-在线文档有时候网络原因打不开，你也可以下载本项目，本地食用
+在线文档有时候网络原因打不开，你也可以下载本项目，本地食用。
+
+但请注意：请不要用于任何商业用途
 
 ## 进行中的文档项目
 :point_right:[esbuild](./esbuild/index.md)
 
+## 联系
+
+>QQ：1024669228
+>
+>WX：ycx1024669228
+>
+>QQ群：439366057
