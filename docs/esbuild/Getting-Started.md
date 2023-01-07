@@ -145,3 +145,13 @@ esbuild app.jsx --bundle --platform=node --packages=external
 
 
 另一种选择是使用`esbuild-wasm`打包，这在所有平台上都是一样的。但它的性能成本很高，有时会比`esbuild`打包慢10倍，因此您可能也不想这样做。
+
+
+## 使用Yarn `Plug'n'Play`(PnP)
+
+esbuild原生支持Yarn的`Plug'n'Play`包安装策略。要使用它，请确保您运行esbuild的当前工作目录包含Yarn生成的包清单JavaScript文件（`.pnp.cjs`或`.pnp.js`）。如果检测到`Yarn Plug'n'Play`包清单，esbuild将自动导入`Yarn`缓存中`.zip`文件内的包，并且将在捆绑期间自动动态提取这些文件。
+
+
+
+因为`esbuild`是在`Go`中编写的，所以对`Yarn Plug'n'Play`的支持已经在`Go`中完全重新实现，而不是依赖`Yarn`的`JavaScript API`。这使得`Yarn Plug'n'Play`包解决方案能够与`esbuild`的并行打包很好地集成，以实现最高速度。注意，Yarn的命令行界面为每个命令增加了许多不可避免的性能开销。为了获得最大的esbuild性能，您可能需要考虑在不使用`Yarn`的`CLI`的情况下运行`esbuild`（即不使用`Yarn esbuild`）。这会让`esbuild`运行速度提高10倍。
+
