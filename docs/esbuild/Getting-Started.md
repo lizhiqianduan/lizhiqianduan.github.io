@@ -155,3 +155,68 @@ esbuild原生支持Yarn的`Plug'n'Play`包安装策略。要使用它，请确�
 
 因为`esbuild`是在`Go`中编写的，所以对`Yarn Plug'n'Play`的支持已经在`Go`中完全重新实现，而不是依赖`Yarn`的`JavaScript API`。这使得`Yarn Plug'n'Play`包解决方案能够与`esbuild`的并行打包很好地集成，以实现最高速度。注意，Yarn的命令行界面为每个命令增加了许多不可避免的性能开销。为了获得最大的esbuild性能，您可能需要考虑在不使用`Yarn`的`CLI`的情况下运行`esbuild`（即不使用`Yarn esbuild`）。这会让`esbuild`运行速度提高10倍。
 
+## 其他安装方式
+
+建议安装`esbuild`的方法是使用`npm`安装本机可执行文件。但也可以通过以下方式安装esbuild：
+
+### 下载构建后的可执行文件
+
+如果您有Unix系统，可以使用以下命令下载当前平台的esbuild二进制可执行文件（它将被下载到当前工作目录）：
+
+```cmd
+curl -fsSL https://esbuild.github.io/dl/v0.16.13 | sh
+```
+您还可以使用最新版本而不是版本号来下载esbuild的最新版本：
+
+
+```cmd
+curl -fsSL https://esbuild.github.io/dl/latest | sh
+```
+
+如果您不想从互联网上执行`shell`脚本以下载`esbuild`，您也可以自己从`npm`手动下载包（这就是上述shell脚本所做的全部工作）。虽然预编译的本地可执行文件是使用`npm`托管的，但实际上不需要安装npm来下载它们。npm包的`registry`是一个普通的`HTTP`服务器，包是普通的`gzip tar`文件。
+
+
+
+以下是直接下载二进制可执行文件的示例：
+```cmd
+curl -O https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.16.13.tgz
+tar xzf ./darwin-x64-0.16.13.tgz
+./package/bin/esbuild
+Usage:
+  esbuild [options] [entry points]
+
+...
+```
+
+
+`@esbuild/darwin-x64`包中的原生可执行文件适用于`macOS`操作系统和64位`Intel`体系结构的操作系统。截至本文撰写之时，这是esbuild支持的平台的本地可执行包的完整列表：
+
+Package name|	OS|	Architecture|	Download
+-------- | ----- | -------| -------
+@esbuild/android-arm	|android|	arm| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/android-arm64	|android|	arm64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/android-x64	|android|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/darwin-arm64	|darwin|	arm64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/darwin-x64	|darwin|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/freebsd-arm64	|freebsd|	arm64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/freebsd-x64	|freebsd|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-arm	|linux|	arm| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-arm64	|linux|	arm64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-ia32	|linux|	ia32| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-loong64	|linux|	loong642| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-mips64el	|linux|	mips64el2| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-ppc64	|linux|	ppc64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-riscv64	|linux|	riscv642| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-s390x	|linux|	s390x| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/linux-x64	|linux|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/netbsd-x64	|netbsd1|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/openbsd-x64	|openbsd|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/sunos-x64	|sunos|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/win32-arm64	|win32|	arm64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/win32-ia32	|win32|	ia32| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+@esbuild/win32-x64	|win32|	x64| [:arrow_down:](https://esbuild.github.io/getting-started/#download-a-build)	
+
+**为什么不建议这样做**：这种方法只适用于可以运行shell脚本的Unix系统，因为它需要Windows上的WSL。另外一个缺点是，您不能将插件与本机版本的esbuild一起使用。
+
+
+如果您选择编写自己的代码来直接从npm下载esbuild，那么您将依赖`esbuild`的本地可执行安装程序的内部实现细节。这些细节可能会在某个时候发生变化，在某种情况下，这种方法将不再适用于新的esbuild版本。虽然这只是一个小缺点，但该方法对于现有的`esbuild`版本仍然可以永远使用（发布到`npm`的包是不可变的）。
