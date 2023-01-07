@@ -121,3 +121,27 @@ esbuild app.js --bundle --platform=node --target=node10.4
 esbuild app.jsx --bundle --platform=node --packages=external
 ```
 这样做的话，在运行时文件系统上必须存在这些依赖项，因为它们不包含在打包文件中。
+
+## 多同步平台
+
+您不能在一个操作系统上安装`esbuild`，在不重新安装的情况下将`node_modules`目录复制到其他操作系统，然后在该其他操作系统上运行`esbuild`。这是行不通的，因为`esbuild`是用原生代码编写的，需要安装特定平台的二进制可执行文件。通常情况下，这没什么问题，因为您通常会将`package.json`文件纳入版本控制，而不是`node_modules`目录，然后每个人在克隆存储库后都会在本地计算机上运行`npm install`。
+
+
+
+然而，人们有时会遇到这种情况，在`Windows`或`macOS`上安装esbuild，并将`node_modules`目录复制到运行`Linux`的`Docker`映像中，或者在`Windows`和`WSL`环境之间复制`node_module`目录。这么操作要想正确运行就取决于您的包管理器了：
+
+
+
+`npm/pnpm`：如果使用npm或pnpm进行安装，则可以在复制文件时尝试不复制`node_modules`目录，并在复制后在目标平台上运行`npm-ci`或`npm-install`。或者您可以考虑改用`Yarn`，它内置支持在多个平台上同时安装软件包。
+
+
+
+`Yarn`：如果您使用Yarn进行安装，可以尝试使用`supportedArchitectures`功能在`.yarnrc.yml`文件中列出当前平台和其他平台。请记住，这就意味着`esbuild`的多个副本将出现在文件系统中。
+
+
+
+您可能还会遇到另一种情况，如果您在带有`ARM`处理器的`macOS`计算机上，使用npm的ARM版本安装esbuild，然后尝试使用`Rosetta`内部运行的`x86-64`版本的`node`运行`esbuild`。在这种情况下，一个简单的解决方案是使用ARM版本的node运行代码，可以在此处下载：https://nodejs.org/en/download/.
+
+
+
+另一种选择是使用`esbuild-wasm`打包，这在所有平台上都是一样的。但它的性能成本很高，有时会比`esbuild`打包慢10倍，因此您可能也不想这样做。
