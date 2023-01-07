@@ -10,11 +10,15 @@ export default defineConfig({
       { text: '首页', link: '/index.md'},
       { text: 'esbuild中文文档', link: '/esbuild/index.md'}
     ],
+
+    outline: 'deep',
+    outlineTitle:'目录导航',
+
     sidebar: {
       '/esbuild/':[
         {text: 'esbuild 中文文档',items:[
           {text: '开始',link: '/esbuild/Getting-Started.md'},
-          {text: 'API',link: '/404.md'},
+          {text: 'API',link: '/esbuild/API.md'},
           {text: '支持的Content类型',link: '/404.md'},
           {text: '插件',link: '/404.md'},
           {text: 'FAQ',link: '/404.md'},
