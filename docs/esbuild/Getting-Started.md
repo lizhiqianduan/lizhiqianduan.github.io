@@ -85,3 +85,39 @@ require('esbuild').build({
 
 
 虽然也有一个非异步的`buildSync API`，但异步API对于构建脚本更好，因为插件只能与异步API一起工作。您可以在API文档中阅读有关构建API的配置选项的更多信息。
+
+
+## 浏览器环境打包
+
+默认情况下，`bundler`为浏览器输出代码，因此启动时不需要额外的配置。对于开发版本，您可能希望使用`--sourcemap`启用源码映射，而对于生产版本，可能希望使用`--minify`启用代码压缩。您可能还希望为您支持的浏览器配置`target`环境，以便将最新的`JavaScript语法`转换为旧的`JavaScript`语法。所有这些加起来后，可能看起来像这样：
+
+
+```cmd
+esbuild app.jsx --bundle --minify --sourcemap --target=chrome58,firefox57,safari11,edge16
+```
+某些npm包可能不是设计为在浏览器中运行的。有时，您可以使用esbuild的配置选项来解决某些问题，无论如何都能成功地打包。在简单的情况下，可以用define特性替换未定义的全局变量，在更复杂的情况下可以用inject特性替换。
+
+
+## Node环境打包
+
+虽然在使用node的时候打包不是必需的，但有时在node中运行代码之前使用`esbuild`处理代码仍然是有好处的。打包可以自动剥离`TypeScript`类型，将`ECMAScript`模块语法转换为`CommonJS`，并将较新的JavaScript语法转换为特定版本节点的较旧语法。在发布软件包之前打包也是有好处的，这样下载量就更小，在从文件系统读取源代码的时间也更少。
+
+
+
+如果需要打包为在`node`中运行的代码，则应通过将`--platform=node`传递给`esbuild`来配置平台设置。这个参数同时也会将一些不同的设置更改为对`node`环境较友好的默认值。例如，所有内置于节点（如`fs`）的包都会自动标记为外部包，因此`esbuild`不会试图去将它们打包。此设置还禁用`package.json`中`browser`字段的解释。
+
+
+
+如果您的代码使用了在您的node版本中不起作用的较新的JavaScript语法，则需要配置node的目标版本：
+
+
+```cmd
+esbuild app.js --bundle --platform=node --target=node10.4
+```
+
+您可能还不想将依赖项`dependencies`与`esbuild`打包在一起。还有很多`node`独有的特性是`esbuild`打包时不支持的，例如`__dirname`、`import.meta.url`、`fs.readFileSync`和`*.node`原生二进制模块。通过将`packages`设置为`external`，可以从打包文件中排除所有依赖项：
+
+```cmd
+esbuild app.jsx --bundle --platform=node --packages=external
+```
+这样做的话，在运行时文件系统上必须存在这些依赖项，因为它们不包含在打包文件中。
