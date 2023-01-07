@@ -271,3 +271,37 @@ esbuild.stop()
 
 
 **不建议这样做的原因**：`Deno`比`node`更新，使用较少，支持的平台也比`node`少，因此建议将node作为运行esbuild的主要方式。Deno使用了互联网作为包系统，而不是现有的JavaScript包生态系统，esbuild是围绕npm风格的包管理而设计和优化的。您可以将esbuild与Deno一起使用，但如果您想打包`HTTP URL`，则需要一个插件。
+
+
+### 从源码构建
+
+要从源生成`esbuild`，请执行以下操作：
+
+
+1. 安装Go编译器：
+
+https://go.dev/dl/
+
+
+
+2. 下载esbuild的源代码：
+
+```cmd
+git clone --depth 1 --branch v0.16.13 https://github.com/evanw/esbuild.git
+cd esbuild
+```
+
+3. 构建esbuild可执行文件（在Windows上为esbuild.exe）：
+
+```cmd
+go build ./cmd/esbuild
+```
+
+如果要为其他平台构建，只需在build命令前面加上平台信息即可。例如，可以使用以下命令构建32位Linux版本：
+
+```cmd
+GOOS=linux GOARCH=386 go build ./cmd/esbuild
+```
+
+
+**不建议这样做的原因**：原生版本只能通过命令行界面使用，对于复杂的用例来说，这是很耗费时间的，并且不支持插件。您需要编写JavaScript或Go代码，并使用esbuild的API来使用插件。
