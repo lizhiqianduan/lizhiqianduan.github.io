@@ -220,3 +220,54 @@ Package name|	OS|	Architecture|	Download
 
 
 如果您选择编写自己的代码来直接从npm下载esbuild，那么您将依赖`esbuild`的本地可执行安装程序的内部实现细节。这些细节可能会在某个时候发生变化，在某种情况下，这种方法将不再适用于新的esbuild版本。虽然这只是一个小缺点，但该方法对于现有的`esbuild`版本仍然可以永远使用（发布到`npm`的包是不可变的）。
+
+
+### 安装WASM版本
+
+除了`esbuild`npm包之外，还有一个`esbuild-wasm`包，其功能类似，但使用`WebAssembly`实现而不是原生代码。安装它也将安装一个名为`esbuild`的可执行文件：
+
+```cmd
+npm install --save-exact esbuild-wasm
+```
+
+**为什么不建议这样做**：`WebAssembly`版本比原生版本慢得多。在许多情况下，它慢了一个数量级（即10倍）。这是出于各种原因，包括：
+- a）node在每次运行时都会从头开始重新编译`WebAssembly`代码
+- b）Go的`WebAssembly`编译方法是单线程的
+- c）node有`WebAssembly`bug，进程退出可能会延迟几秒
+`WebAssembly`版本还排除了一些功能，例如本地文件服务器。只有在没有其他选择的情况下，例如当您希望在不受支持的平台上使用`esbuild`时，才应该像这样使用`WebAssembly`包。WebAssembly包主要用于浏览器。
+
+
+
+### 使用`Deno`代替`node`
+
+如果您希望将`esbuild`与`Deno JavaScript`环境一起使用，`esbulid`也对其提供了基础支持。程序包位于[https://deno.land/x/esbuild](https://deno.land/x/esbuild)，并使用了原生esbuild可执行文件。可执行文件将在运行时从`npm`下载并缓存，因此您的计算机需要网络能访问`registry.npmjs.org`才能使用此包。使用软件包如下所示：
+
+```js
+import * as esbuild from 'https://deno.land/x/esbuild@v0.16.13/mod.js'
+const ts = 'let test: boolean = true'
+const result = await esbuild.transform(ts, { loader: 'ts' })
+console.log('result:', result)
+esbuild.stop()
+```
+
+
+它与`esbuild`的npm包基本上具有相同的API，但有一个额外之处：完成后需要调用`stop()`，因为与node不同，Deno没有提供必要的API来允许`Deno`在`esbuild`内部子进程仍在运行时退出。
+
+
+
+如果您希望使用`esbuild`的`WebAssembly`版本来代替`esbuild`与`Deno`的原生版本，可以通过导入`wasm.js`代替`mod.js`来实现，如下所示：
+
+
+```js
+import * as esbuild from 'https://deno.land/x/esbuild@v0.16.13/wasm.js'
+const ts = 'let test: boolean = true'
+const result = await esbuild.transform(ts, { loader: 'ts' })
+console.log('result:', result)
+esbuild.stop()
+```
+
+使用`WebAssembly`代替原生意味着您不需要指定`Deno`的`--allow`运行权限，而`WebAssembly`是文件系统不可用的情况下（如使用`Deno Deploy`）的唯一选择。但是，请记住，`esbuild`的`WebAssembly`版本比原生版本慢得多。关于WebAssembly的另一件事是，`Deno`目前有一个`bug`，在所有加载的`WebAssembly`模块完全优化之前，进程终止会被不必要地延迟，这可能需要几秒钟。如果您正在编写一个使用`esbuild`的`WebAssembly`实现的临时脚本，以便您的代码在合理的时间内退出，那么您可能需要在代码完成后手动调用`Deno.exit(0)`。
+
+
+
+**不建议这样做的原因**：`Deno`比`node`更新，使用较少，支持的平台也比`node`少，因此建议将node作为运行esbuild的主要方式。Deno使用了互联网作为包系统，而不是现有的JavaScript包生态系统，esbuild是围绕npm风格的包管理而设计和优化的。您可以将esbuild与Deno一起使用，但如果您想打包`HTTP URL`，则需要一个插件。
