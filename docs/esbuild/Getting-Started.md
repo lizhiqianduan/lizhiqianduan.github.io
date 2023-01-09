@@ -122,7 +122,7 @@ esbuild app.jsx --bundle --platform=node --packages=external
 ```
 这样做的话，在运行时文件系统上必须存在这些依赖项，因为它们不包含在打包文件中。
 
-## 多同步平台
+## 多平台同步
 
 您不能在一个操作系统上安装`esbuild`，在不重新安装的情况下将`node_modules`目录复制到其他操作系统，然后在该其他操作系统上运行`esbuild`。这是行不通的，因为`esbuild`是用原生代码编写的，需要安装特定平台的二进制可执行文件。通常情况下，这没什么问题，因为您通常会将`package.json`文件纳入版本控制，而不是`node_modules`目录，然后每个人在克隆存储库后都会在本地计算机上运行`npm install`。
 
