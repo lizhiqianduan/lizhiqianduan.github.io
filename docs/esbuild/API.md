@@ -246,3 +246,41 @@ require(`pkg/${foo}`);
 一些打包工具（如Webpack）试图通过在打包过程中包含所有可能访问到的文件，然后在运行时模拟文件系统来支持这一点。但是，运行时文件系统仿真超出了范围，不会在esbuild中实现。如果您确实需要打包时实现这一点，则可能需要使用另一个打包器而不是`esbuild`。
 
 
+## Define
+*Supported by: Transform | Build*
+
+
+此功能提供了一种用常量表达式替换全局标识符的方法。这可以是一种在构建之间更改某些代码的行为而不更改代码本身的方法：
+
+```cmd
+$ echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=true
+hooks = require("hooks");
+$ echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=false
+hooks = false;
+```
+
+替换的表达式必须是`JSON`对象（`null、boolean、number、string、array或object`）或单个标识符。数组和对象以外的表达式替换是被内联替换的，这意味着它们可以参与常量折叠`constant folding`。数组和对象替换则是存储在变量中，然后使用标识符引用，而不是内联替换，这避免了替换值的重复副本，但意味着值不参与常量折叠。
+
+
+
+如果要用字符串文字替换某个内容，请记住传递给esbuild的替换值本身必须包含引号。省略引号表示替换值是标识符：
+
+
+
+```cmd
+$ echo 'id, str' | esbuild --define:id=text --define:str=\"text\"
+text, "text";
+```
+
+如果您使用的是CLI，请记住，不同的shell对于如何转义双引号字符有不同的规则（当替换值为字符串时，这是必要的）。使用`\“`反斜杠转义，因为它在`bash`和`Windows`命令提示符中都有效。其他在`bash`中有效的双引号转义方法（如用单引号包围它们）在`Windows`上不起作用，因为`Windows`命令提示符不会删除单引号。这在从`package.json`文件中的`npm脚本`使用`CLI`时很重要，大家都希望该脚本在所有平台上都能使用:
+
+
+```json
+{
+  "scripts": {
+    "build": "esbuild --define:process.env.NODE_ENV=\\\"production\\\" app.js"
+  }
+}
+```
+
+如果您仍然遇到不同`shell`的跨平台引号转义问题，您可能希望改用`JavaScriptAPI`。这样的话，您就可以使用常规JavaScript语法来消除跨平台的差异。
