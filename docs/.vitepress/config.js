@@ -8,19 +8,24 @@ export default defineConfig({
     'logo':'/logo.jpg',
     nav: [
       { text: '首页', link: '/index.md'},
-      { text: 'esbuild中文文档', link: '/esbuild/index.md'}
+      { text: 'esbuild中文文档', link: '/esbuild/index.md',activeMatch:'/esbuild/'}
     ],
 
     outline: 'deep',
     outlineTitle:'目录导航',
+
+    editLink: {
+      pattern: 'https://github.com/lizhiqianduan/lizhiqianduan.github.io/blob/main/docs/:path',
+      text: 'Edit this page on GitHub'
+    },
 
     sidebar: {
       '/esbuild/':[
         {text: 'esbuild 中文文档',items:[
           {text: '开始',link: '/esbuild/Getting-Started.md'},
           {text: 'API',link: '/esbuild/API.md'},
-          {text: '支持的Content类型',link: '/404.md'},
-          {text: '插件',link: '/404.md'},
+          {text: '支持的Content类型',link: '/esbuild/Content-Types.md'},
+          {text: '插件',link: '/esbuild/Plugins.md'},
           {text: 'FAQ',link: '/404.md'},
           {text: 'bundle包大小分析',link: '/404.md'},
         ]},
