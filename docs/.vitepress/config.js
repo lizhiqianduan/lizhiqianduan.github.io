@@ -8,7 +8,8 @@ export default defineConfig({
     'logo':'/logo.jpg',
     nav: [
       { text: '首页', link: '/index.md'},
-      { text: 'esbuild中文文档', link: '/esbuild/index.md',activeMatch:'/esbuild/'}
+      { text: 'esbuild中文文档', link: '/esbuild/index.md',activeMatch:'/esbuild/'},
+      { text: '更新日志', link: '/changelog.md'}
     ],
 
     outline: 'deep',
