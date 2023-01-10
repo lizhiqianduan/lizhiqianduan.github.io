@@ -3,6 +3,7 @@
 
 ### ⚡ Site update | 网站更新
 
+* 加入更新日志的导航 ([4206768](https://github.com/lizhiqianduan/lizhiqianduan.github.io/commit/4206768108d595246d8dd4f1721edf165d815e7a))
 * 加入更新日志及自动生成changelog脚本 ([e5bcdb8](https://github.com/lizhiqianduan/lizhiqianduan.github.io/commit/e5bcdb8f7553428df97d483873cb5ffcd7b9b5f0))
 * 提交日志规范 ([47e94c7](https://github.com/lizhiqianduan/lizhiqianduan.github.io/commit/47e94c73d530e85ec6ac1d91766073f107aa1a3d))
 
