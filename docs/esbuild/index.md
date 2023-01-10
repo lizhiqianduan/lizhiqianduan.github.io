@@ -1,6 +1,9 @@
+---
+outline: false
+---
 # esbuild 中文文档
 
-此文档为esbuild的中文译文：[https://esbuild.github.io/](https://esbuild.github.io/)
+此文档为`esbuild`的中文译文，其官方原文地址为：[https://esbuild.github.io/](https://esbuild.github.io/)
 
 
 当前的web构建工具比预期速度慢10-100倍。`esbuild bundler`项目的主要目标是开创构建工具性能的新时代，并在此过程中创建一个易于使用的现代bundler。

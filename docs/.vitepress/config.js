@@ -22,6 +22,7 @@ export default defineConfig({
     sidebar: {
       '/esbuild/':[
         {text: 'esbuild 中文文档',items:[
+          {text: '简介',link: '/esbuild/index.md'},
           {text: '开始',link: '/esbuild/Getting-Started.md'},
           {text: 'API',link: '/esbuild/API.md'},
           {text: '支持的Content类型',link: '/esbuild/Content-Types.md'},
