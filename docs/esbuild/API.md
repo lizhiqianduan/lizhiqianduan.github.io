@@ -325,3 +325,48 @@ esbuild out1=home.ts out2=settings.ts --bundle --outdir=out
 ```
 这将生成两个输出文件`out/out1.js`和`out/out2.js`，对应于两个入口点`home.ts`和`settings.ts`。
 
+### 外部包 External
+
+*Supported by: Build*
+
+
+
+可以将文件或包标记为外部，以将其从构建任务中排除。导入不会被打包，而是被保留（对`iife`和`cjs`格式使用`require`，对`esm`格式使用`import`），并将在运行时被执行。
+
+
+
+这个配置有几个用途。首先，它可以用于从打包文件中删除不必要的代码，这些代码是您知道的，永远不会执行的代码。例如，一个`package`可能包含仅能在`nodejs`中运行的代码，但您的目标环境是浏览器。它还可以用于在运行时从无法打包的包中导入`nodejs`代码。例如，`fsevents`包含`esbuild`不支持的本机扩展。将某物标记为外部包的示例如下：
+
+
+```shell
+echo 'require("fsevents")' > app.js
+esbuild app.js --bundle --external:fsevents --platform=node
+```
+```js
+// 输出=> app.js
+require("fsevents");
+```
+您还可以在外部路径中使用`*`通配符，将匹配该模式的所有文件标记为外部文件。例如，可以使用`*.png`删除所有`.png`文件，或使用`/images/*`删除以`/images/`开头的所有路径：
+
+
+```shell
+esbuild app.js --bundle "--external:*.png" "--external:/images/*"
+```
+
+外部路径在路径解析之前和之后都会应用，这使您可以根据源代码中的导入路径和绝对文件系统路径进行匹配。如果外部路径在下面两种情况下都匹配，则该路径被视为外部路径。具体行为如下：
+
+
+
+- 在路径解析开始之前，将对所有外部路径`external`和导入路径进行检查比对。此外，如果外部路径看起来像包路径（即不以`/`或`./`或`../`开头），则会检查导入路径，查看它们是否将该包路径作为路径前缀。
+
+
+
+这意味着`--external:@foo/bar`与`--external:@foo/bar/*`表示一个意思，它与导入路径`@foo/bar/baz`能匹配上。因此，`external`也将`@foo/bar`包内的所有路径标记为外部路径。
+
+
+
+- 在路径解析结束后，将针对所有看起来不像包路径的外部路径（即以`/`或`./`或`../`开头的路径）与解析后的绝对路径进行检查比对。但在检查之前，外部路径将与当前工作目录拼接，然后进行标准化，最终生成绝对路径（即使它包含`*`通配符）。
+
+
+
+这意味着您可以使用`--external:./dir/*`将目录`dir`中的所有内容标记为`external`。注意，前缀`./`很重要。如果不做么写，使用`--external:dir/*`将被视为包路径，在路径解析结束后不会再进行检查比对。
