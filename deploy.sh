@@ -13,10 +13,9 @@ npx vitepress build docs
 rsync -av docs/.vitepress/dist/** ./
 rsync -av docs/logo.jpg ./
 
-git add .
-git commit -m "deploy: 发版"
+git add . && git commit -m "deploy: 发版"
 git push
 
 
 echo "已完成发版： https://www.lizhiqianduan.com"
-echo "changelog已生成： https://lizhiqianduan.com/changelog.html"
+echo "changelog已生成： https://www.lizhiqianduan.com/changelog.html"
