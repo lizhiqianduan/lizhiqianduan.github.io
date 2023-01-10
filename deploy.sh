@@ -5,6 +5,7 @@ set -e
 
 # 生成changelog
 npx conventional-changelog -n "changelog.config.js" -c "changelog.context.json"  -i ./docs/changelog.md -s -r 0 -p angular
+echo "changelog已生成：https://lizhiqianduan.com/changelog.html"
 
 # 构建
 npx vitepress build docs
@@ -14,5 +15,5 @@ rsync -av docs/.vitepress/dist/** ./
 rsync -av docs/logo.jpg ./
 
 git add .
-git commit -m "deploy"
+git commit -m "deploy: 发版"
 git push

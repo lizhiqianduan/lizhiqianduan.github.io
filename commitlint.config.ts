@@ -11,7 +11,7 @@ const Configuration: UserConfig = {
    */
   rules: {
     'type-case': [2, 'always', ['lower-case', 'upper-case']],
-    'type-enum': [2, 'always', ['fix', 'site', 'esbuild']]
+    'type-enum': [1, 'always', ['fix', 'site', 'esbuild','deploy']]
   }
 };
 
