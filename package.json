@@ -3,8 +3,13 @@
 		"docs:dev": "vitepress dev docs",
 		"docs:build": "vitepress build docs",
 		"docs:preview": "vitepress preview docs"
-	  },
+	},
 	"devDependencies": {
+		"@commitlint/cli": "17.4.1",
+		"@commitlint/config-conventional": "17.4.0",
+		"@commitlint/types": "17.4.0",
+		"conventional-changelog-cli": "2.2.2",
+		"husky": "8.0.3",
 		"vitepress": "1.0.0-alpha.33"
 	}
 }

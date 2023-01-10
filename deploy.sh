@@ -3,6 +3,9 @@
 # 忽略错误
 set -e
 
+# 生成changelog
+npx conventional-changelog -n "changelog.config.js" -c "changelog.context.json"  -i ./docs/changelog.md -s -r 0 -p angular
+
 # 构建
 npx vitepress build docs
 
