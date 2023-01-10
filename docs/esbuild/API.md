@@ -146,8 +146,9 @@ cat out.js
 - Working directory
 
 ## 简单选项
-### Alias
+### 别名 Alias
 *Supported by: Build*
+
 此功能允许您在打包时用一个包替换另一个包。以下示例将包`oldpkg`替换为包`newpkg`：
 
 ```cmd
@@ -159,15 +160,15 @@ esbuild app.js --bundle --alias:oldpkg=newpkg
 请注意，当使用`Alias`替换导入路径时，生成的导入路径将在工作目录中解析，而不是在包含具有导入路径的源文件的目录中解析。如果需要，可以使用`Working directory`功能设置`esbuild`所使用的工作目录。
 
 
-### Analyze
+### 报告 Analyze
 *Supported by: Build*
 
 *如果您正在寻找交互式可视化，请尝试esbuild的Bundle Size Analyzer。您可以上传esbuild元文件以查看打包大小明细。*
 
 使用`Analyze`功能可以生成一份易于阅读的关于打包内容的报告：
 
-```cmd
-$ esbuild --bundle example.jsx --outfile=out.js --minify --analyze
+```shell
+esbuild --bundle example.jsx --outfile=out.js --minify --analyze
 out.js                                                                    27.6kb  100.0%
    ├ node_modules/react-dom/cjs/react-dom-server.browser.production.min.js  19.2kb   69.8%
    ├ node_modules/react/cjs/react.production.min.js                          5.9kb   21.4%
@@ -180,8 +181,8 @@ out.js                                                                    27.6kb
 ```
 
 该信息显示了每个`输出文件`打包的`输入文件`，以及它们最终占用的`输出文件`的百分比。如果您需要更多信息，可以启用`verbose`模式。这会显示从入口点到每个输入文件的导入路径，告诉您为什么给定的输入文件包含在打包文件中：
-```cmd
-$ esbuild --bundle example.jsx --outfile=out.js --minify --analyze=verbose
+```shell
+esbuild --bundle example.jsx --outfile=out.js --minify --analyze=verbose
 out.js ─────────────────────────────────────────────────────────────────── 27.6kb ─ 100.0%
    ├ node_modules/react-dom/cjs/react-dom-server.browser.production.min.js ─ 19.2kb ── 69.8%
    │  └ node_modules/react-dom/server.browser.js
@@ -207,7 +208,7 @@ out.js ────────────────────────�
 
 请注意，此格式化的分析结果适用于人类，而非机器。特定的格式可能会随着时间的推移而改变，这可能会破坏任何试图解析它的工具。您不应该编写工具来解析此数据。您应该使用`JSON`元数据文件中的信息。此可视化中的所有内容都源自`metafile`中的`JSON`元数据，这样您就不会因为不解析`esbuild`的格式化分析结果而丢失任何信息。
 
-### Bundle
+### 打包 Bundle
 *Supported by: Build*
 
 打包文件意味着将任何导入的依赖项内联到文件本身中。此过程是递归的，因此依赖项的依赖项（等等）也将被内联。默认情况下，`esbuild`不会打包输入文件。打包必须显式启用，如下所示：
@@ -246,17 +247,17 @@ require(`pkg/${foo}`);
 一些打包工具（如Webpack）试图通过在打包过程中包含所有可能访问到的文件，然后在运行时模拟文件系统来支持这一点。但是，运行时文件系统仿真超出了范围，不会在esbuild中实现。如果您确实需要打包时实现这一点，则可能需要使用另一个打包器而不是`esbuild`。
 
 
-## Define
+### 预定义 Define
 *Supported by: Transform | Build*
 
 
 此功能提供了一种用常量表达式替换全局标识符的方法。这可以是一种在构建之间更改某些代码的行为而不更改代码本身的方法：
 
-```cmd
-$ echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=true
-hooks = require("hooks");
-$ echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=false
-hooks = false;
+```shell
+echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=true
+# 结果=> hooks = require("hooks");
+echo 'hooks = DEBUG && require("hooks")' | esbuild --define:DEBUG=false
+# 结果=> hooks = false;
 ```
 
 替换的表达式必须是`JSON`对象（`null、boolean、number、string、array或object`）或单个标识符。数组和对象以外的表达式替换是被内联替换的，这意味着它们可以参与常量折叠`constant folding`。数组和对象替换则是存储在变量中，然后使用标识符引用，而不是内联替换，这避免了替换值的重复副本，但意味着值不参与常量折叠。
@@ -267,9 +268,9 @@ hooks = false;
 
 
 
-```cmd
-$ echo 'id, str' | esbuild --define:id=text --define:str=\"text\"
-text, "text";
+```shell
+echo 'id, str' | esbuild --define:id=text --define:str=\"text\"
+# 结果=> text, "text";
 ```
 
 如果您使用的是CLI，请记住，不同的shell对于如何转义双引号字符有不同的规则（当替换值为字符串时，这是必要的）。使用`\“`反斜杠转义，因为它在`bash`和`Windows`命令提示符中都有效。其他在`bash`中有效的双引号转义方法（如用单引号包围它们）在`Windows`上不起作用，因为`Windows`命令提示符不会删除单引号。这在从`package.json`文件中的`npm脚本`使用`CLI`时很重要，大家都希望该脚本在所有平台上都能使用:
@@ -284,3 +285,43 @@ text, "text";
 ```
 
 如果您仍然遇到不同`shell`的跨平台引号转义问题，您可能希望改用`JavaScriptAPI`。这样的话，您就可以使用常规JavaScript语法来消除跨平台的差异。
+
+### 入口点 Entry points
+
+*Supported by: Build*
+
+
+入口是一个文件数组，每个文件都用作打包算法的输入。它们被称为“入口点”，是因为每一个入口都被当做`初始脚本`来执行，然后加载它所包含的所有其他代码。您可以使用`import`语句将它们导入到您的入口点（或导入另一个文件，然后导入到您的入口），而不是在页面中加载带有`＜script＞`标记的许多库。
+
+
+
+简单的应用程序只需要一个入口点，但如果存在多个逻辑上独立的代码组（如主线程和工作线程），或者应用程序具有独立的模块（如登录页、编辑器页和设置页），则额外的入口点可能很有用。单独的入口点有助于引入关注点分离，并有助于减少浏览器需要下载的不必要代码量。如果应用程序支持的话，启用代码拆分`code splitting`可以在浏览到第二页时进一步减小下载大小，第二页的入口点与已经访问的第一页共享一些已经下载的代码。
+
+
+
+指定入口点的简单方法是只传递文件路径数组：
+
+
+```cmd
+esbuild home.ts settings.ts --bundle --outdir=out
+```
+这将生成两个输出文件`out/home.js`和`out/settings.js`，对应于两个入口点`home.ts`和`settings.ts`。
+
+
+
+为了进一步控制如何从相应的入口点，打包后其对应的输出文件路径，您应该查看以下选项：
+
+- `Entry names`
+- `Out extension`
+- `Outbase`
+- `Outdir`
+- `Outfile`
+
+此外，还可以使用其他入口点语法为每个入口点指定完全自定义的打包输出路径：
+
+
+```cmd
+esbuild out1=home.ts out2=settings.ts --bundle --outdir=out
+```
+这将生成两个输出文件`out/out1.js`和`out/out2.js`，对应于两个入口点`home.ts`和`settings.ts`。
+
