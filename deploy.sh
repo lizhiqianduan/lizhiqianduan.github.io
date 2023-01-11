@@ -4,7 +4,8 @@
 set -e
 
 # 生成changelog
-npx conventional-changelog -n "changelog.config.js" -c "changelog.context.json"  -i ./docs/changelog.md -s -r 0 -p angular
+# npx conventional-changelog -n "changelog.config.js" -c "changelog.context.json"  -i ./docs/changelog.md -s -r 0 -p angular
+npx conventional-changelog -n "changelog.config.js" -c "changelog.context.js"  -i ./docs/changelog.md -s -a -p angular
 
 # 构建
 npx vitepress build docs
