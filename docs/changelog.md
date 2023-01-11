@@ -19,3 +19,12 @@
 * 外部包 External 
 * Define 
 
+##  "更新日志" (2023-01-11)
+
+
+### ⚡ Site update | 网站更新
+
+* changelog优化过滤已发布的commit,不再全量生成 
+
+
+
