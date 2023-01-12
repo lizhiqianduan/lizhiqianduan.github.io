@@ -520,3 +520,48 @@ console.log(dummy_process_cwd());
 #### 有条件地注入文件
 
 如果希望仅在`export`实际被使用时才有条件地导入文件，则应将注入的文件标记为没有副作用，方法是将其放入包中，并在该包的`package.json`文件中添加`“sideEffects”：false`。此设置是`Webpack`中的一个规定，`esbuild`中适用于任何导入的文件，而不仅仅是与`inject`一起使用的文件。
+
+
+### 加载器 Loader
+*Supported by: Transform | Build*
+
+此选项可更改给定输入文件的解析方式。例如，`js loader`将文件解释为`JavaScript`，`css loader`将该文件解释为`css`。有关所有内置加载器的完整列表，请参阅[内容类型](./Content-Types.md)页面。
+
+
+
+为给定的文件类型配置加载器后，允许您使用`import`语句或`require`加载该文件类型。例如，将`.png`文件扩展名配置为使用`data URL`加载器意味着导入`.png`文件将为您提供包含该图像内容的数据URL：
+
+
+```js
+import url from './example.png'
+let image = new Image
+image.src = url
+document.body.appendChild(image)
+
+import svg from './example.svg'
+let doc = new DOMParser().parseFromString(svg, 'application/xml')
+let node = document.importNode(doc.documentElement, true)
+document.body.appendChild(node)
+```
+
+以上代码可以使用构建API进行打包，如下所示：
+
+```cmd
+esbuild app.js --bundle --loader:.png=dataurl --loader:.svg=text
+```
+
+如果使用来自`stdin`的输入的`构建API`，则该选项的指定方式不同，因为`stdin`没有文件扩展名。使用`构建API`配置一个`stdin`加载器的示例如下：
+
+
+```cmd
+echo 'import pkg = require("./pkg")' | esbuild --loader=ts --bundle
+```
+
+转换API`transform`只需要一个加载器，因为它不涉及与文件系统的交互，因此不处理文件扩展名。为`转换API`配置加载器（在本例中为ts加载器）如下所示：
+
+
+```cmd
+$ echo 'let x: number = 1' | esbuild --loader=ts
+
+let x = 1;
+```
