@@ -370,3 +370,69 @@ esbuild app.js --bundle "--external:*.png" "--external:/images/*"
 
 
 这意味着您可以使用`--external:./dir/*`将目录`dir`中的所有内容标记为`external`。注意，前缀`./`很重要。如果不做么写，使用`--external:dir/*`将被视为包路径，在路径解析结束后不会再进行检查比对。
+
+
+### 输出格式 Format
+
+*Supported by: Transform | Build*
+
+
+
+这将设置生成的JavaScript文件的输出格式。目前有三个可能的值可以配置：`iife`、`cjs`和`esm`。当未指定输出格式时，如果启用了打包（按下面这几种方式），esbuild将为您选择输出格式，如果禁用了打包，则`esbuild`不执行任何格式转换。
+
+
+#### iife
+
+`iife`格式表示“立即执行的函数表达式”，旨在在浏览器中运行。将代码包装在函数表达式中可以确保代码中的任何变量不会意外地与全局范围中的变量冲突。如果入口文件需要在浏览器中暴露全局变量，则可以使用`全局名称global name`来配置该全局变量的名称。当未指定输出格式、启用打包并且`platform`设置为`browser`（默认情况下为浏览器）时，`iife`格式将自动启用。指定`iife`格式如下所示：
+
+
+
+```cmd
+$ echo 'alert("test")' | esbuild --format=iife
+(() => {
+  alert("test");
+})();
+
+```
+
+#### CommonJS
+
+`cjs`格式代表`CommonJS`，旨在在Node中运行。它假定环境包含`exports`、`require`和`module`。`ECMAScript`模块语法中具有导出的入口点将被转换为一个模块，每个导出名称的`exports`上都有一个`getter`函数。当未指定输出格式、启用打包并将`platform`设置为`node`时，`cjs`格式将自动启用。指定`cjs`格式如下所示：
+
+
+```cmd
+$ echo 'export default "test"' | esbuild --format=cjs
+...
+var stdin_exports = {};
+__export(stdin_exports, {
+  default: () => stdin_default
+});
+module.exports = __toCommonJS(stdin_exports);
+var stdin_default = "test";
+```
+
+#### ESM
+
+`esm`格式代表`ECMAScript模块`。它假定环境支持导入和导出语法。以`CommonJS`模块语法导出的入口文件将转换为`module.exports`且只有一个`default`值的导出。当未指定输出格式、启用打包且`platform`设置为`neutral`时，将自动启用`esm`格式。指定`esm`格式如下所示：
+
+
+```cmd
+$ echo 'module.exports = "test"' | esbuild --format=esm
+...
+var require_stdin = __commonJS({
+  "<stdin>"(exports, module) {
+    module.exports = "test";
+  }
+});
+export default require_stdin();
+```
+
+esm格式既可以在浏览器中使用，也可以在`node`中使用，但必须将其作为模块显式加载。如果从另一个模块导入，则会自动将其视为模块加载。否则：
+
+
+
+- 在浏览器中，可以使用`<script src="file.js" type="module"></script>`来加载`esm`模块。
+
+
+
+- 在node中，您可以使用`node --experimental-modules file.mjs`来加载`esm`模块。请注意，除非您在`package.json`文件中配置了`"type"："module"`，否则`node`需要`.mjs`扩展名才能加载`esm`模块。可以使用`esbuild`中的`输出扩展名out extension`来自定义`esbuild`生成文件的扩展名。您可以在[此处](https://nodejs.org/api/esm.html)阅读有关在`node`中使用`ECMAScript`模块的更多信息。
