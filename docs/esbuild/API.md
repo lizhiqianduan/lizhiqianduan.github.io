@@ -678,3 +678,13 @@ esbuild app.js --bundle --outdir=out
 
 
 如果您的构建在不同的目录中包含多个入口点，则目录结构将从所有输入入口点路径中最低的公共祖先目录`lowest common ancestor`开始复制到输出目录中。例如，如果有两个入口点`src/home/index.ts`和`src/about/index.ts`，则输出目录将包含`home/index.js`和`about/index.js`。如果要自定义此行为，应更改配置`outbase directory`。
+
+### 输出文件 Outfile
+*Supported by: Build*
+
+此选项设置构建后的输出文件名。这仅适用于只有一个入口点的情况。如果有多个入口点，则必须使用`outdir`选项来指定输出目录。使用`outfile`如下所示：
+
+
+```cmd
+esbuild app.js --bundle --outfile=out.js
+```
