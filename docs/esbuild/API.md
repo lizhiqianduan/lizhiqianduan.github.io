@@ -436,3 +436,87 @@ esm格式既可以在浏览器中使用，也可以在`node`中使用，但必�
 
 
 - 在node中，您可以使用`node --experimental-modules file.mjs`来加载`esm`模块。请注意，除非您在`package.json`文件中配置了`"type"："module"`，否则`node`需要`.mjs`扩展名才能加载`esm`模块。可以使用`esbuild`中的`输出扩展名out extension`来自定义`esbuild`生成文件的扩展名。您可以在[此处](https://nodejs.org/api/esm.html)阅读有关在`node`中使用`ECMAScript`模块的更多信息。
+
+### 注入 Inject
+*Supported by: Build*
+
+此选项允许您自动将全局变量替换为另一个文件的导入。这可能是一个有用的工具，它可以使您无法控制的代码适配新的环境。例如，假设您有一个名为`process-shim.js`的文件，该文件导出一个变量`process`：
+
+```js
+// process-shim.js
+export let process = {
+  cwd: () => ''
+}
+```
+```js
+// entry.js
+console.log(process.cwd())
+```
+
+这是为了替换`node`的`process.cwd()`函数的用法，以防止调用它的包在浏览器中运行时崩溃。您可以使用注入功能将全局标识符`process`的所有调用的地方替换为对该文件的导入：
+
+
+```cmd
+esbuild entry.js --bundle --inject:./process-shim.js --outfile=out.js
+```
+
+结果如下：
+
+```js
+// out.js
+let process = {cwd: () => ""};
+console.log(process.cwd());
+```
+
+#### 将inject与define一起使用
+
+您还可以将此功能与`define`功能相结合，以便对导入内容进行更为针对性的选择。例如：
+
+
+```js
+// process-shim.js
+export function dummy_process_cwd() {
+  return ''
+}
+```
+
+```js
+// entry.js
+console.log(process.cwd())
+```
+
+您可以使用`define`特性将`process.cwd`映射到`dummy_process_cwd`，然后使用`inject`特性从`process-shim.js`注入`dummy_proc_cwd`：
+
+
+```cmd
+esbuild entry.js --bundle --define:process.cwd=dummy_process_cwd --inject:./process-shim.js --outfile=out.js
+```
+
+这将产生以下输出：
+
+```js
+// out.js
+function dummy_process_cwd() {
+  return "";
+}
+console.log(dummy_process_cwd());
+```
+
+#### 自动导入JSX
+
+您可以使用注入功能自动为`JSX`表达式提供实现。例如，您可以自动导入`react`包以提供`react.createElement`等函数。有关详细信息，请参阅[JSX文档](https://esbuild.github.io/content-types/#auto-import-for-jsx)。
+
+
+
+#### 没有导入的注入文件
+
+您也可以对没有导出的文件使用此功能。在这种情况下，注入的文件只能在其他文件导入之前出现，就像每个输入文件都包含`import "./file.js"`一样。由于ECMAScript模块的工作方式，这种注入仍然是“卫生的”，因为不同文件中同名的符号会被重命名，这样它们就不会相互冲突。
+
+>译者注：此模块的文档，原文可能有错。
+>标题为`without imports`，下面解释为`without exports`，根据使用来看，应该是`without exports`  :point_right:[去看原文](https://esbuild.github.io/api/#injecting-files-without-imports)
+
+
+
+#### 有条件地注入文件
+
+如果希望仅在`export`实际被使用时才有条件地导入文件，则应将注入的文件标记为没有副作用，方法是将其放入包中，并在该包的`package.json`文件中添加`“sideEffects”：false`。此设置是`Webpack`中的一个规定，`esbuild`中适用于任何导入的文件，而不仅仅是与`inject`一起使用的文件。
