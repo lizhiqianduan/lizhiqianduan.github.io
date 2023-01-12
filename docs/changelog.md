@@ -31,3 +31,19 @@
 
 
 
+##  "更新日志" (2023-01-12)
+
+
+### ✨ Esbuild | 中文文档更新
+
+* 代码压缩 Minify 
+* 平台 Platform todo 
+* 输出格式 Format 
+* 输出目录 Outdir 
+* 输出问卷 Outfile 
+* 依赖包 Packages 
+* 注入 Inject 
+* 转换器 Loader 
+
+
+
