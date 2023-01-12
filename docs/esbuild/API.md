@@ -688,3 +688,22 @@ esbuild app.js --bundle --outdir=out
 ```cmd
 esbuild app.js --bundle --outfile=out.js
 ```
+
+### 依赖包 Packages
+*Supported by: Build*
+
+使用此设置可以从打包文件中排除包的所有依赖项。这在打包`node`时非常有用，因为许多`npm`包使用了`node`特定的功能，但`esbuild`在打包时是不支持（例如`__dirname`、`import.meta.url`、`fs.readFileSync`和`*.node`本机二进制模块）。使用这个配置看起来像这样：
+
+
+
+```cmd
+esbuild app.js --bundle --packages=external
+```
+
+启用此选项会自动将所有看起来像`npm`包的导入路径（即不以`.`或`..`路径开头且不是绝对路径）标记为外部路径。它与手动将每个依赖项传递到`external`选项具有相同的效果，但更简洁。如果要自定义哪些依赖项是外部的，哪些不是外部的，那么应该使用`external`进行设置。
+
+
+
+请注意，此设置仅在启用打包时有效。还请注意，将导入路径标记为外部路径发生在导入路径被所有配置的别名`aliases`重写之后，因此使用此设置时，别名功能`aliases`仍然有效。
+
+
