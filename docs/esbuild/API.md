@@ -707,3 +707,29 @@ esbuild app.js --bundle --packages=external
 请注意，此设置仅在启用打包时有效。还请注意，将导入路径标记为外部路径发生在导入路径被所有配置的别名`aliases`重写之后，因此使用此设置时，别名功能`aliases`仍然有效。
 
 
+### 平台 Platform
+*Supported by: Transform | Build*
+
+默认情况下，esbuild的bundler被配置为生成用于浏览器的代码。如果打包代码打算在`node`中运行，则应将平台设置为`node`：
+
+
+```
+esbuild app.js --bundle --platform=node
+```
+
+当平台设置为浏览器`broswer`（默认值）时：
+
+
+
+- 启用打包时，默认输出格式设置为`iife`，它将生成的`JavaScript`代码包裹在一个立即执行的函数表达式中，以防止变量泄漏到全局范围中。
+
+
+
+- 如果一个包在其`package.json`文件中为`browser`字段指定了映射，`esbuild`将使用该映射以浏览器友好的版本替换特定的文件或模块。例如，一个包可能使用`path-browserify`替换`path`。
+
+
+
+- `main`字段可设置为`browser`、`module`、`main`，有一些额外的特殊行为：如果包提供了`module`和`main`入口点，但不是`browser`入口点，则如果使用`require()`导入包，则使用`main`而不是`module`。这种方式提高了导出函数与`CommonJS`模块（通过将函数分配给`module.exports`）的兼容性。如果要禁用此额外的特殊行为，可以将`main`字段显式设置为`browser、module、main`。
+
+
+todo...
