@@ -562,6 +562,104 @@ echo 'import pkg = require("./pkg")' | esbuild --loader=ts --bundle
 
 ```cmd
 $ echo 'let x: number = 1' | esbuild --loader=ts
-
 let x = 1;
 ```
+
+### 代码压缩 Minify
+*Supported by: Transform | Build*
+
+启用后，生成的代码将被压缩，而不是漂亮的打印。压缩后的代码功能通常是与非精简代码一样的，但更小，这意味着它下载速度更快，但更难调试。通常，您在生产中需要压缩代码，而不是在开发中。
+
+
+
+在`esbuild`中启用压缩示例如下：
+
+
+
+```
+$ echo 'fn = obj => { return obj.x }' | esbuild --minify
+fn=n=>n.x;
+```
+
+这个选项结合起来做了三件不同的事情：删除空格，重写语法以使其更紧凑，并重命名局部变量以使其更短。通常，您希望执行所有这些压缩操作，但如果需要，也可以单独启用这些选项：
+
+```cmd
+$ echo 'fn = obj => { return obj.x }' | esbuild --minify-whitespace
+fn=obj=>{return obj.x};
+
+$ echo 'fn = obj => { return obj.x }' | esbuild --minify-identifiers
+fn = (n) => {
+  return n.x;
+};
+
+$ echo 'fn = obj => { return obj.x }' | esbuild --minify-syntax
+fn = (obj) => obj.x;
+```
+
+这些相同的概念也适用于`CSS`，而不仅限于`JavaScript`：
+
+
+
+```cmd
+$ echo 'div { color: yellow }' | esbuild --loader=css --minify
+div{color:#ff0}
+```
+
+
+`esbuild`中的`JavaScript`压缩算法通常生成的输出非常接近行业标准`JavaScript`压缩工具的输出大小。[这里](https://github.com/privatenumber/minification-benchmarks/tree/cd3e5acb8d38da5f86426d44ac95974812559683#readme)有一个不同压缩工具之间输出大小的示例比较。虽然`esbuild`在所有情况下都不是最佳的`JavaScript`压缩工具（也不是试图做到这一点），但它努力在大多数代码专业压缩工具百分之几之内的大小，当然也比其他工具快得多。
+
+
+
+#### 注意事项
+
+使用`esbuild`作为压缩工具时，以下是要记住的一些事项：
+
+
+
+- 当启用缩小时，您可能还应该设置目标选项`target`。默认情况下，`esbuild`利用现代`JavaScript`特性使代码更小。例如，`a === undefined || a === null ? 1 : a`可以缩小为`a ?? 1`。如果不希望`esbuild`在缩小时利用现代`JavaScript`功能，则应使用较旧的语言目标`target`，例如`--target=es6`。
+
+
+
+- 字符转义序列`\n`将替换为`JavaScript`模板文本中的换行符。如果`target`支持字符串文字，则字符串文字也将转换为模板文字，因为这样做将获得较小的输出。这不是一个bug。压缩意味着您需要更小的输出，转义序列需要两个字节，而换行符只需要一个字节。
+
+
+
+- 默认情况下，`esbuild`不会缩小顶级声明的名称。这是因为`esbuild`不知道您将如何处理这些输出。您可能正在将压缩后的代码注入到其他代码的中间，在这种情况下，压缩顶级声明的名称是不安全的。设置输出格式`format`（或启用打包，如果尚未设置输出格式，启用打包后会为您自动选择）会告诉`esbuild`输出将在其自身范围内运行，这意味着可以安全地压缩顶级声明的名称。
+
+
+- 对于所有JavaScript代码的可以100%的说，代码压缩是不安全的。这对于`esbuild`以及其他流行的`JavaScript`压缩插件（如`terser`）都是如此。特别是，`esbuild`的设计不会保留函数调用`.toString()`后的值。这样做的原因是，所有函数中的所有代码都必须逐字保留，那么压缩几乎不会有任何作用，而且实际上是无用的。然而，这意味着依赖`.toString()`返回值的`JavaScript`代码在压缩时可能会中断。例如，由于`AngularJS`使用了`.toString()`读取函数的参数名，所以当代码被压缩时，`AngularJS`框架中的某些模式会中断。解决方法是改用显式注释`explicit annotations`。
+
+
+
+- 默认情况下，`esbuild`不会在函数和类对象上保留`.name`的值。这是因为大多数代码不依赖此属性，使用较短的名称是一个重要的大小优化。但是，有些代码确实依赖`.name`属性进行注册和绑定。如果需要依赖此选项，则应启用保留名称选项`keep names`。
+
+
+
+- 使用某些`JavaScript`功能可以禁用`esbuild`的许多优化，包括代码压缩。具体来说，使用直接`eval`或`with语句`可以防止`esbuild`将标识符重命名为较小的名称，因为这些特性会让标识符打包到运行时而不是编译时。这虽然总是无意发生的，因为人们没察觉到直接调用`evel`计算了什么，以及为什么它不好。
+
+如果您正在考虑编写这样的代码：
+```js
+// Direct eval (will disable minification for the whole file)
+let result = eval(something)
+```
+您可能应该改为下面这样编写代码，以便可以压缩代码：
+```js
+// Indirect eval (has no effect on the surrounding code)
+let result = (0, eval)(something)
+```
+[这里](https://esbuild.github.io/content-types/#direct-eval)有更多关于直接求值的结果和可用替代方案的信息。
+
+- esbuild中的压缩算法尚未进行高级优化。特别是，以下对于JavaScript的代码优化是可能的，但esbuild还尚未完成（不是详细的列表）：
+
+- Dead-code elimination within function bodies
+- Function inlining
+- Cross-statement constant propagation
+- Object shape modeling
+- Allocation sinking
+- Method devirtualization
+- Symbolic execution
+- JSX expression hoisting
+- TypeScript enum detection and inlining
+
+如果您的代码使用的模式需要某些形式的代码优化才能打包，或者如果您正在为您的用例搜索最佳的JavaScript压缩算法，则应考虑使用其他工具。一些实现了这些高级代码优化的工具示例包括`Terser`和`Google Closure Compiler`。
+
