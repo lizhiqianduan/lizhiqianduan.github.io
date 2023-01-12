@@ -663,3 +663,18 @@ let result = (0, eval)(something)
 
 如果您的代码使用的模式需要某些形式的代码优化才能打包，或者如果您正在为您的用例搜索最佳的JavaScript压缩算法，则应考虑使用其他工具。一些实现了这些高级代码优化的工具示例包括`Terser`和`Google Closure Compiler`。
 
+### 输出目录 Outdir
+*Supported by: Build*
+
+此选项设置生成文件的输出目录。例如，下面命令将生成一个名为out的目录：
+
+
+```cmd
+esbuild app.js --bundle --outdir=out
+```
+
+如果输出目录不存在，将创建该目录，如果它已经包含了一些文件，则不会清空该目录。任何生成的文件都将自动覆盖同名的现有文件。如果希望输出目录仅包含当前运行的`esbuild`输出的文件，则应在运行`esbuild`之前自行清空输出目录。
+
+
+
+如果您的构建在不同的目录中包含多个入口点，则目录结构将从所有输入入口点路径中最低的公共祖先目录`lowest common ancestor`开始复制到输出目录中。例如，如果有两个入口点`src/home/index.ts`和`src/about/index.ts`，则输出目录将包含`home/index.js`和`about/index.js`。如果要自定义此行为，应更改配置`outbase directory`。
