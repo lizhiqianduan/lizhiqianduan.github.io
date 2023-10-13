@@ -3,21 +3,72 @@ title: API | esbuild 中文文档
 ---
 
 # API
-可以通过以下三种方式之一访问API：命令行、`JavaScript`和`Go`。这三种语言的概念和参数在很大程度上是相同的，因此它们将在这里一起呈现，而不是为每种语言提供单独的文档。
+可以通过以下三种方式访问API：命令行、`JavaScript`和`Go`。这三种语言的概念和参数在很大程度上是相同的，因此它们将在这里一起呈现，而不是为每种语言提供单独的文档。
 
 
+**CLI**：如果您使用的是命令行API，了解这些标志的形式可能会有所帮助：`--foo`、`--foo=bar`或`--foo:bar`。形式`--foo`用于启用布尔标志（如`--minify`），形式`--foo=bar`用于具有单个值且仅指定一次的标志（如`--platform=`），而形式`--foo:bar`用于具有多个值且可以多次重新指定的标志（例如`--external:`）。
 
+**JavaScript**：如果您正在使用`JavaScript`，请务必查看下面的`JS API特殊细节`信息部分。您还可以找到`esbuild`的`TypeScript`类型定义作为参考。如果您正在使用Go，请务必查看自动生成的Go文档。
+
+**Go**：如果您正在使用Go，您可能会发现为esbuild自动生成的Go文档作为参考很有用。这两个公共Go软件包都有单独的文档：`pkg/api`和`pkg/cli`。
+
+
+# 概述 Overview
 `esbuild`的API中有两个主要的`API`调用：`transform`和`build`。你应该使用哪一种很重要，您应该了解清楚，因为它们的工作方式不同。
 
 
+## Build
+这是esbuild的主要接口。通常会传递一个或多个入口点文件和各种选项进行处理，然后esbuild将结果写回文件系统。下面是一个简单的示例，它支持与输出目录绑定：
 
-如果您正在使用`JavaScript`，请务必查看下面的`JS特定内容`信息部分。您还可以找到`esbuild`的`TypeScript`类型定义作为参考。如果您正在使用Go，请务必查看自动生成的Go文档。
+
+```
+esbuild app.ts--bundle--outdir=dist
+```
+
+构建API的高级使用涉及设置长时间运行的构建上下文。此上下文在JS和Go中是一个显式对象，但在CLI中是隐式的。使用给定上下文完成的所有构建都共享相同的构建选项，并且后续构建是增量完成的（即，它们重用以前构建的一些工作以提高性能）。这对开发很有用，因为esbuild可以在您工作时在后台为您重建应用程序。
+
+有三种不同形式的增量构建API：
+
+- `监视模式（Watch mode）`告诉`esbuild`监视文件系统，并在您编辑和保存可能使生成无效的文件时自动为您重新生成。以下是一个示例：
+
+```shell
+esbuild app.ts --bundle --outdir=dist --watch
+[watch] build finished, watching for changes...
+```
+
+- `服务模式（Serve mode）`会启动一个本地开发服务器，该服务器提供最新构建的结果。传入的请求会自动启动新的构建，因此当您在浏览器中重新加载页面时，您的web应用程序始终是最新的。以下是一个示例：
+
+
+```shell
+esbuild app.ts --bundle --outdir=dist --serve
+
+ > Local:   http://127.0.0.1:8000/
+ > Network: http://192.168.0.1:8000/
+
+127.0.0.1:61302 - "GET /" 200 [1ms]
+```
+
+- `重构建模式（rebuild mode）`允许你可以手动调用构建。这在将esbuild与其他工具集成时非常有用（例如，使用自定义文件观察程序或开发服务器，而不是esbuild的内置服务器）。以下是一个示例：
+
+```js
+let ctx = await esbuild.context({
+  entryPoints: ['app.ts'],
+  bundle: true,
+  outdir: 'dist',
+})
+
+for (let i = 0; i < 5; i++) {
+  let result = await ctx.rebuild()
+}
+```
+
+这三个增量构建API可以组合在一起。要启用实时重新加载（在编辑和保存文件时自动重新加载页面），您需要在同一上下文中启用监视和服务。
+
+处理完上下文对象后，可以在上下文上调用`dispose（）`以等待现有构建完成，停止监视和/或服务模式，并释放资源。
 
 
 
-如果您使用的是命令行API，了解这些标志的形式可能会有所帮助：`--foo`、`--foo=bar`或`--foo:bar`。形式`--foo`用于启用布尔标志（如`--minify`），形式`--foo=bar`用于具有单个值且仅指定一次的标志（如`--platform=`），而形式`--foo:bar`用于具有多个值且可以多次重新指定的标志（例如`--external:`）。
-
-## Transform API
+## Transform
 `Transform API`能在不访问文件系统的情况下对单个字符串进行操作。这使得它非常适合在没有文件系统（如浏览器）或作为其他工具链的一部分。下面是一个简单的变换：
 
 
@@ -26,124 +77,114 @@ echo 'let x: number = 1' | esbuild --loader=ts
 # let x = 1;
 ```
 
-如果没有提供输入文件并且`--bundle`标志不存在，命令行接口将使用此API。在这种情况下，输入字符串来自stdin，输出字符串则到达stdout。转换API可以支持以下选项：
+对于某些场景来说，使用字符串而不是文件作为输入更符合人们感官。文件系统隔离有一定的优点（例如，在浏览器中工作，不受附近`package.json`文件的影响），也有一定的缺点（例如，不能与bundling或插件一起使用）。如果您的场景不适合`Transform API`，那么您应该使用更通用的`Build API`。
 
-**简单选项:**
-- Define
-- Format
-- Loader
-- Minify
-- Platform
-- Sourcemap
-- Target
+## JS API的特殊细节（JS-specific details）
 
-**高级选项:**
-- Banner
-- Charset
-- Color
-- Drop
-- Footer
-- Global name
-- Ignore annotations
-- JSX
-- JSX dev
-- JSX factory
-- JSX fragment
-- JSX import source
-- JSX side effects
-- Keep names
-- Legal comments
-- Log level
-- Log limit
-- Log override
-- Mangle props
-- Pure
-- Source root
-- Sourcefile
-- Sources content
-- Supported
-- Tree shaking
-- Tsconfig raw
+适用于`esbuild`的`JS API`有异步和同步两种风格。推荐使用异步API，因为它适用于所有环境，而且速度更快、功能更强大。同步API只在`Nodejs`中工作，并且只能做某些事情，但有时在特定的情况下是必要的。详细说明：
 
-## Build API
-`Build API`对文件系统中的一个或多个文件进行操作。这允许文件相互引用并打包在一起。下面是简单构建的样子：
+**异步API（Async API）**
 
+异步API使用promise作为返回结果。请注意，由于使用了`import`和顶级`await`关键字，您可能不得不在`node`中使用`.mjs`文件扩展名：
 
+```js
+import * as esbuild from 'esbuild'
 
-```shell
-echo 'let x: number = 1' > in.ts
-esbuild in.ts --outfile=out.js
-cat out.js
-# let x = 1;
+let result1 = await esbuild.transform(code, options)
+let result2 = await esbuild.build(options)
 ```
 
-如果提供了输入文件或存在`--bundle`标志，则命令行接口将使用此API。请注意，默认情况下`esbuild`不会打包。必须显式传递`--bundle`标志才能启用打包。如果未提供输入文件，则从stdin读取单个输入文件。`Build API`可以支持以下选项：
+优点：
 
-**简单选项:**
-- Alias
-- Analyze
-- Bundle
-- Define
-- Entry points
-- External
-- Format
-- Inject
-- Loader
-- Minify
-- Outdir
-- Outfile
-- Packages
-- Platform
-- Serve
-- Sourcemap
-- Splitting
-- Target
-- Watch
-- Write
+- 您可以使用带有异步API的插件
 
-**高级选项:**
-- Allow overwrite
-- Asset names
-- Banner
-- Charset
-- Chunk names
-- Color
-- Conditions
-- Drop
-- Entry names
-- Footer
-- Global name
-- Ignore annotations
-- Incremental
-- JSX
-- JSX dev
-- JSX factory
-- JSX fragment
-- JSX import source
-- JSX side effects
-- Keep names
-- Legal comments
-- Log level
-- Log limit
-- Log override
-- Main fields
-- Mangle props
-- Metafile
-- Node paths
-- Out extension
-- Outbase
-- Preserve symlinks
-- Public path
-- Pure
-- Resolve extensions
-- Source root
-- Sourcefile
-- Sources content
-- Stdin
-- Supported
-- Tree shaking
-- Tsconfig
-- Working directory
+- 当前线程未被阻止，因此您可以在此期间执行其他工作
+
+- 您可以同时运行多个`esbuild API`，然后将这些调用分布在所有可用的`CPU`中，以获得最大性能
+
+缺点：
+
+- 使用`promise`可能会导致代码更加混乱，尤其是在`CommonJS`中，顶级`await`不可用
+
+- 在必须同步的情况下不起作用，例如在`require.extensions`中
+
+
+**同步API（Sync API）**
+
+同步API的调用是直接在行内就返回结果了：
+
+```js
+let esbuild = require('esbuild')
+
+let result1 = esbuild.transformSync(code, options)
+let result2 = esbuild.buildSync(options)
+```
+
+
+优点：
+
+- 避免`promise`可能会有更干净的代码，尤其是在顶级`await`不可用的情况下
+
+- 在必须同步的情况下工作，例如在`require.extensions`中
+
+缺点：
+
+- 您不能将插件与同步API一起使用，因为插件是异步的
+
+- 它会阻塞当前线程，因此在此期间无法执行其他工作
+
+- 使用同步API会阻止esbuild并行调用
+
+
+## 在浏览器中使用（In the browser）
+
+`esbuild API`也可以使用`Web Worker`中的`WebAssembly`在浏览器中运行。要利用这一点，您需要安装`esbuild-wasm`包，而不是`esbuild`包：
+
+```
+npm install esbuild-wasm
+```
+
+浏览器`API`类似于`Node`的`API`，只是您需要首先调用`initialize()`，并且需要传递`WebAssembly`二进制文件的`URL`。`API`的同步版本也不可用。假设你使用的是`bundler`，它看起来是这样的：
+
+```js
+import * as esbuild from 'esbuild-wasm'
+
+await esbuild.initialize({
+  wasmURL: './node_modules/esbuild-wasm/esbuild.wasm',
+})
+
+let result1 = await esbuild.transform(code, options)
+let result2 = esbuild.build(options)
+```
+
+如果您已经从`worker`运行此代码，并且不希望`initialize`创建另一个工作线程，则可以将`worker:false`传递给它。然后它将在与调用`initialize`的线程相同的线程中创建`WebAssembly`模块。
+
+您还可以在`HTML`文件中的`script`标签中使用`esbuild`的`API`，而无需通过加载带有`＜script＞`标记的`lib/browser.min.js`文件来使用打包工具。在这种情况下，`API`创建了一个名为`esbuild`的全局变量，该全局变量保存了`API`对象：
+
+```js
+<script src="./node_modules/esbuild-wasm/lib/browser.min.js"></script>
+<script>
+  esbuild.initialize({
+    wasmURL: './node_modules/esbuild-wasm/esbuild.wasm',
+  }).then(() => {
+    ...
+  })
+</script>
+```
+
+如果要将此API与`ECMAScript`模块一起使用，则你应该导入`esm/browser.min.js`文件：
+
+```js
+<script type="module">
+  import * as esbuild from './node_modules/esbuild-wasm/esm/browser.min.js'
+
+  await esbuild.initialize({
+    wasmURL: './node_modules/esbuild-wasm/esbuild.wasm',
+  })
+
+  // ...
+</script>
+```
 
 ## 简单选项
 ### 别名 Alias
